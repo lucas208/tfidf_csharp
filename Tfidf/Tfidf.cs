@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 
 public class Tfidf
 {
@@ -50,14 +50,14 @@ public class Tfidf
         return tf * idf;
     }
 
-    public static List<List<string>> LeituraParcial(int linhaInicial, int linhaFinal)
+    public static async Task<List<List<string>>> LeituraParcialAsync(int linhaInicial, int linhaFinal)
     {
         var path = @"C:\Users\030856141600\Desktop\Concorrente\Dataset\reviews.csv";
         var documents = new List<List<string>>();
         var linhaAtual = 0;
         try
         {
-            var lines = File.ReadAllLines(path);
+            var lines = await File.ReadAllLinesAsync(path);
             foreach (var line in lines)
             {
                 linhaAtual++;
@@ -81,39 +81,13 @@ public class Tfidf
         return documents;
     }
 
-    public class Leitor
-    {
-        private readonly int linhaInicial;
-        private readonly int linhaFinal;
-
-        private List<List<string>> documents;
-
-        public Leitor(int linhaInicial, int linhaFinal)
-        {
-            this.linhaInicial = linhaInicial;
-            this.linhaFinal = linhaFinal;
-        }
-
-        public void Run()
-        {
-            Console.WriteLine("Entrou na thread");
-            documents = LeituraParcial(linhaInicial, linhaFinal);
-            Console.WriteLine("Saiu da thread");
-        }
-
-        public List<List<string>> GetDocuments()
-        {
-            return documents;
-        }
-    }
-
-    public class Calculador
+    public class Calculo
     {
         private double tfidf;
         private readonly string document;
         private readonly List<List<string>> documents;
 
-        public Calculador(string document, List<List<string>> documents)
+        public Calculo(string document, List<List<string>> documents)
         {
             this.document = document;
             this.documents = documents;
@@ -122,7 +96,7 @@ public class Tfidf
         public void Run()
         {
             Console.WriteLine("Entrou na thread");
-            var calculator = new Tfidf();
+            Tfidf calculator = new Tfidf();
             tfidf = calculator.TfIdf(document, documents, "content");
             Console.WriteLine("Saiu da thread");
         }
@@ -133,53 +107,35 @@ public class Tfidf
         }
     }
 
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
-        var leitor1 = new Leitor(1, 1000);
-        var leitor2 = new Leitor(1001, 2000);
-        var leitor3 = new Leitor(2001, 3000);
+        var leitura1 = LeituraParcialAsync(1, 1000);
+        var leitura2 = LeituraParcialAsync(1001, 2000);
+        var leitura3 = LeituraParcialAsync(2001, 3000);
 
         var tempoInicial = DateTime.Now;
 
-        var thread1 = new Thread(leitor1.Run);
-        var thread2 = new Thread(leitor2.Run);
-        var thread3 = new Thread(leitor3.Run);
-
-        thread1.Start();
-        thread2.Start();
-        thread3.Start();
-
-        thread1.Join();
-        var documents1 = leitor1.GetDocuments();
-        thread2.Join();
-        var documents2 = leitor2.GetDocuments();
-        thread3.Join();
-        var documents3 = leitor3.GetDocuments();
+        var documents1 = await leitura1;
+        var documents2 = await leitura2;
+        var documents3 = await leitura3;
 
         var tempoFinal = DateTime.Now;
 
         Console.WriteLine($"Tempo de leitura do dataset: {(tempoFinal - tempoInicial).TotalSeconds}s");
 
-        var calculador1 = new Calculador(string.Join(" ", documents1[1]), documents1);
-        var calculador2 = new Calculador(string.Join(" ", documents2[1]), documents2);
-        var calculador3 = new Calculador(string.Join(" ", documents3[1]), documents3);
+        var calculo1 = new Calculo(string.Join(" ", documents1[1]), documents1);
+        var calculo2 = new Calculo(string.Join(" ", documents2[1]), documents2);
+        var calculo3 = new Calculo(string.Join(" ", documents3[1]), documents3);
 
         tempoInicial = DateTime.Now;
 
-        var thread4 = new Thread(calculador1.Run);
-        var thread5 = new Thread(calculador2.Run);
-        var thread6 = new Thread(calculador3.Run);
+        calculo1.Run();
+        calculo2.Run();
+        calculo3.Run();
 
-        thread4.Start();
-        thread5.Start();
-        thread6.Start();
-
-        thread4.Join();
-        var tfidf1 = calculador1.GetTfidf();
-        thread5.Join();
-        var tfidf2 = calculador2.GetTfidf();
-        thread6.Join();
-        var tfidf3 = calculador3.GetTfidf();
+        var tfidf1 = calculo1.GetTfidf();
+        var tfidf2 = calculo2.GetTfidf();
+        var tfidf3 = calculo3.GetTfidf();
 
         tempoFinal = DateTime.Now;
 
