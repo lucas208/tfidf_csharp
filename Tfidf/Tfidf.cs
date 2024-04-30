@@ -53,7 +53,7 @@ public class Tfidf
     {
         var tempoInicial = DateTime.Now;
 
-        var path = @"C:\Users\030856141600\Desktop\Concorrente\Dataset\reviews.csv";
+        var path = @"C:\Users\usuario\Documents\Lucas\Estudos\IMD\Engsoft 2024.1\Concorrente\Dataset\reviews.csv";
         var documents = new List<List<string>>();
 
         try
@@ -85,5 +85,7 @@ public class Tfidf
 
         Console.WriteLine($"Tempo de cálculo do TF-IDF: {(tempoFinal - tempoInicial).TotalSeconds}s");
         Console.WriteLine($"TF-IDF = {tfidf}");
+        Console.WriteLine("Pressione qualquer tecla para sair...");
+        Console.ReadKey();
     }
 }
