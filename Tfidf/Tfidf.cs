@@ -52,32 +52,38 @@ public class Tfidf
 
     public static List<List<string>> LeituraParcial(int linhaInicial, int linhaFinal)
     {
-        var path = @"C:\Users\030856141600\Desktop\Concorrente\Dataset\reviews.csv";
+        var path = @"C:\Users\usuario\Documents\Lucas\Estudos\IMD\Engsoft 2024.1\Concorrente\Dataset\reviews.csv";
         var documents = new List<List<string>>();
         var linhaAtual = 0;
+
         try
         {
-            var lines = File.ReadAllLines(path);
-            foreach (var line in lines)
+            using (var reader = new StreamReader(path))
             {
-                linhaAtual++;
-                if (linhaAtual < linhaInicial)
+                string line;
+                while ((line = reader.ReadLine()) != null)
                 {
-                    continue;
+                    linhaAtual++;
+
+                    if (linhaAtual < linhaInicial)
+                    {
+                        continue;
+                    }
+                    if (linhaAtual > linhaFinal) {
+                        break;
+                    }
+
+                    var tokens = line.Split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+                    var doc = tokens.Select(token => token.Trim('"').Trim()).ToList();
+                    documents.Add(doc);
                 }
-                if (linhaAtual > linhaFinal)
-                {
-                    break;
-                }
-                var tokens = line.Split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-                var doc = tokens.Select(token => token.Trim('"').Trim()).ToList();
-                documents.Add(doc);
             }
         }
         catch (IOException e)
         {
             Console.WriteLine(e.Message);
         }
+
         return documents;
     }
 
@@ -92,6 +98,7 @@ public class Tfidf
         {
             this.linhaInicial = linhaInicial;
             this.linhaFinal = linhaFinal;
+            this.documents = new List<List<string>>();
         }
 
         public void Run()
@@ -135,9 +142,9 @@ public class Tfidf
 
     public static void Main(string[] args)
     {
-        var leitor1 = new Leitor(1, 1000);
-        var leitor2 = new Leitor(1001, 2000);
-        var leitor3 = new Leitor(2001, 3000);
+        var leitor1 = new Leitor(1, 1000000);
+        var leitor2 = new Leitor(1000001, 2000000);
+        var leitor3 = new Leitor(2000001, 3000000);
 
         var tempoInicial = DateTime.Now;
 
@@ -161,8 +168,8 @@ public class Tfidf
         Console.WriteLine($"Tempo de leitura do dataset: {(tempoFinal - tempoInicial).TotalSeconds}s");
 
         var calculador1 = new Calculador(string.Join(" ", documents1[1]), documents1);
-        var calculador2 = new Calculador(string.Join(" ", documents2[1]), documents2);
-        var calculador3 = new Calculador(string.Join(" ", documents3[1]), documents3);
+        var calculador2 = new Calculador(string.Join(" ", documents1[1]), documents2);
+        var calculador3 = new Calculador(string.Join(" ", documents1[1]), documents3);
 
         tempoInicial = DateTime.Now;
 
@@ -185,5 +192,7 @@ public class Tfidf
 
         Console.WriteLine($"Tempo de cálculo do TF-IDF (aproximado): {(tempoFinal - tempoInicial).TotalSeconds}s");
         Console.WriteLine($"TF-IDF (aproximado) = {(tfidf1 + tfidf2 + tfidf3) / 3.0}");
+        Console.WriteLine("Pressione qualquer tecla para sair...");
+        Console.ReadKey();
     }
 }
