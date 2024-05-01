@@ -52,32 +52,36 @@ public class Tfidf
 
     public static async Task<List<List<string>>> LeituraParcialAsync(int linhaInicial, int linhaFinal)
     {
-        var path = @"C:\Users\030856141600\Desktop\Concorrente\Dataset\reviews.csv";
+        var path = @"C:\Users\usuario\Documents\Lucas\Estudos\IMD\Engsoft 2024.1\Concorrente\Dataset\reviews.csv";
         var documents = new List<List<string>>();
         var linhaAtual = 0;
         try
         {
-            var lines = await File.ReadAllLinesAsync(path);
-            foreach (var line in lines)
+            using (var reader = new StreamReader(path))
             {
-                linhaAtual++;
-                if (linhaAtual < linhaInicial)
+                string line;
+                while ((line = await reader.ReadLineAsync()) != null)
                 {
-                    continue;
+                    linhaAtual++;
+                    if (linhaAtual < linhaInicial)
+                    {
+                        continue;
+                    }
+                    if (linhaAtual > linhaFinal)
+                    {
+                        break;
+                    }
+                    var tokens = line.Split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+                    var doc = tokens.Select(token => token.Trim('"').Trim()).ToList();
+                    documents.Add(doc);
                 }
-                if (linhaAtual > linhaFinal)
-                {
-                    break;
-                }
-                var tokens = line.Split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-                var doc = tokens.Select(token => token.Trim('"').Trim()).ToList();
-                documents.Add(doc);
             }
         }
         catch (IOException e)
         {
             Console.WriteLine(e.Message);
         }
+
         return documents;
     }
 
@@ -109,9 +113,9 @@ public class Tfidf
 
     public static async Task Main(string[] args)
     {
-        var leitura1 = LeituraParcialAsync(1, 1000);
-        var leitura2 = LeituraParcialAsync(1001, 2000);
-        var leitura3 = LeituraParcialAsync(2001, 3000);
+        var leitura1 = LeituraParcialAsync(1, 1000000);
+        var leitura2 = LeituraParcialAsync(1000001, 2000000);
+        var leitura3 = LeituraParcialAsync(2000001, 3000000);
 
         var tempoInicial = DateTime.Now;
 
@@ -124,8 +128,8 @@ public class Tfidf
         Console.WriteLine($"Tempo de leitura do dataset: {(tempoFinal - tempoInicial).TotalSeconds}s");
 
         var calculo1 = new Calculo(string.Join(" ", documents1[1]), documents1);
-        var calculo2 = new Calculo(string.Join(" ", documents2[1]), documents2);
-        var calculo3 = new Calculo(string.Join(" ", documents3[1]), documents3);
+        var calculo2 = new Calculo(string.Join(" ", documents1[1]), documents2);
+        var calculo3 = new Calculo(string.Join(" ", documents1[1]), documents3);
 
         tempoInicial = DateTime.Now;
 
@@ -141,5 +145,7 @@ public class Tfidf
 
         Console.WriteLine($"Tempo de cálculo do TF-IDF (aproximado): {(tempoFinal - tempoInicial).TotalSeconds}s");
         Console.WriteLine($"TF-IDF (aproximado) = {(tfidf1 + tfidf2 + tfidf3) / 3.0}");
+        Console.WriteLine("Pressione qualquer tecla para sair...");
+        Console.ReadKey();
     }
 }
