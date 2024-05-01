@@ -52,6 +52,7 @@ public class Tfidf
 
     public static async Task<List<List<string>>> LeituraParcialAsync(int linhaInicial, int linhaFinal)
     {
+        Console.WriteLine("Entrou na task");
         var path = @"C:\Users\usuario\Documents\Lucas\Estudos\IMD\Engsoft 2024.1\Concorrente\Dataset\reviews.csv";
         var documents = new List<List<string>>();
         var linhaAtual = 0;
@@ -81,14 +82,16 @@ public class Tfidf
         {
             Console.WriteLine(e.Message);
         }
-
+        Console.WriteLine("Saiu da task");
         return documents;
     }
 
     public static async Task<double> CalculaTfIdfAsync(List<string> document, List<List<string>> documents)
     {
+        Console.WriteLine("Entrou na task");
         var calculator = new Tfidf();
         var tfidf = await Task.Run(() => calculator.TfIdf(string.Join(" ", document), documents, "content"));
+        Console.WriteLine("Saiu da task");
         return tfidf;
     }
 
