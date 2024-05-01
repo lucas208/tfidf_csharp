@@ -85,30 +85,11 @@ public class Tfidf
         return documents;
     }
 
-    public class Calculo
+    public static async Task<double> CalculaTfIdfAsync(List<string> document, List<List<string>> documents)
     {
-        private double tfidf;
-        private readonly string document;
-        private readonly List<List<string>> documents;
-
-        public Calculo(string document, List<List<string>> documents)
-        {
-            this.document = document;
-            this.documents = documents;
-        }
-
-        public void Run()
-        {
-            Console.WriteLine("Entrou na thread");
-            Tfidf calculator = new Tfidf();
-            tfidf = calculator.TfIdf(document, documents, "content");
-            Console.WriteLine("Saiu da thread");
-        }
-
-        public double GetTfidf()
-        {
-            return tfidf;
-        }
+        var calculator = new Tfidf();
+        var tfidf = await Task.Run(() => calculator.TfIdf(string.Join(" ", document), documents, "content"));
+        return tfidf;
     }
 
     public static async Task Main(string[] args)
@@ -127,19 +108,17 @@ public class Tfidf
 
         Console.WriteLine($"Tempo de leitura do dataset: {(tempoFinal - tempoInicial).TotalSeconds}s");
 
-        var calculo1 = new Calculo(string.Join(" ", documents1[1]), documents1);
-        var calculo2 = new Calculo(string.Join(" ", documents1[1]), documents2);
-        var calculo3 = new Calculo(string.Join(" ", documents1[1]), documents3);
+        var documentTF = documents1[1];
+
+        var calculo1 = CalculaTfIdfAsync(documentTF, documents1);
+        var calculo2 = CalculaTfIdfAsync(documentTF, documents2);
+        var calculo3 = CalculaTfIdfAsync(documentTF, documents3);
 
         tempoInicial = DateTime.Now;
 
-        calculo1.Run();
-        calculo2.Run();
-        calculo3.Run();
-
-        var tfidf1 = calculo1.GetTfidf();
-        var tfidf2 = calculo2.GetTfidf();
-        var tfidf3 = calculo3.GetTfidf();
+        var tfidf1 = await calculo1;
+        var tfidf2 = await calculo2;
+        var tfidf3 = await calculo3;
 
         tempoFinal = DateTime.Now;
 
