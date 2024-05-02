@@ -6,8 +6,7 @@ using System.Threading;
 
 public class Tfidf
 {
-    private static readonly object locker = new object();
-    private static readonly List<List<string>> documentosCompartilhados = new List<List<string>>();
+    private static volatile List<List<string>> documentosCompartilhados = new List<List<string>>();
 
     public double Tf(string comment, string term)
     {
@@ -105,13 +104,9 @@ public class Tfidf
         {
             var documents = LeituraParcial(linhaInicial, linhaFinal);
             Console.WriteLine("Entrou na thread de leitura");
-
-            lock (locker)
-            {
-                Console.WriteLine("Entrou na seção crítica de leitura");
-                documentosCompartilhados.AddRange(documents);
-                Console.WriteLine("Saiu da seção crítica de leitura");
-            }
+            Console.WriteLine("Entrou na seção crítica de leitura");
+            documentosCompartilhados.AddRange(documents);
+            Console.WriteLine("Saiu da seção crítica de leitura");
             Console.WriteLine("Saiu da thread de leitura");
         }
     }
@@ -133,18 +128,12 @@ public class Tfidf
         public void Run()
         {
             Console.WriteLine("Entrou na thread de cálculo");
-
             List<List<string>> documents;
-            lock (locker)
-            {
-                Console.WriteLine("Entrou na seção crítica de cálculo");
-                documents = documentosCompartilhados.GetRange(linhaInicial, linhaFinal - linhaInicial);
-                Console.WriteLine("Saiu da seção crítica de cálculo");
-            }
-
+            Console.WriteLine("Entrou na seção crítica de cálculo");
+            documents = documentosCompartilhados.GetRange(linhaInicial, linhaFinal - linhaInicial);
+            Console.WriteLine("Saiu da seção crítica de cálculo");
             var calculator = new Tfidf();
             tfidf = calculator.TfIdf(document, documents, "content");
-
             Console.WriteLine("Saiu da thread de cálculo");
         }
 
