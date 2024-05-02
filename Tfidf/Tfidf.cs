@@ -6,6 +6,9 @@ using System.Threading;
 
 public class Tfidf
 {
+    private static readonly object locker = new object();
+    private static readonly List<List<string>> documentosCompartilhados = new List<List<string>>();
+
     public double Tf(string comment, string term)
     {
         var words = comment.Replace(".", " ").Replace(",", "").Split(' ');
@@ -92,25 +95,24 @@ public class Tfidf
         private readonly int linhaInicial;
         private readonly int linhaFinal;
 
-        private List<List<string>> documents;
-
         public Leitor(int linhaInicial, int linhaFinal)
         {
             this.linhaInicial = linhaInicial;
             this.linhaFinal = linhaFinal;
-            this.documents = new List<List<string>>();
         }
 
         public void Run()
         {
-            Console.WriteLine("Entrou na thread");
-            documents = LeituraParcial(linhaInicial, linhaFinal);
-            Console.WriteLine("Saiu da thread");
-        }
+            var documents = LeituraParcial(linhaInicial, linhaFinal);
+            Console.WriteLine("Entrou na thread de leitura");
 
-        public List<List<string>> GetDocuments()
-        {
-            return documents;
+            lock (locker)
+            {
+                Console.WriteLine("Entrou na seção crítica de leitura");
+                documentosCompartilhados.AddRange(documents);
+                Console.WriteLine("Saiu da seção crítica de leitura");
+            }
+            Console.WriteLine("Saiu da thread de leitura");
         }
     }
 
@@ -118,20 +120,32 @@ public class Tfidf
     {
         private double tfidf;
         private readonly string document;
-        private readonly List<List<string>> documents;
+        private readonly int linhaInicial;
+        private readonly int linhaFinal;
 
-        public Calculador(string document, List<List<string>> documents)
+        public Calculador(string document, int linhaInicial, int linhaFinal)
         {
             this.document = document;
-            this.documents = documents;
+            this.linhaInicial = linhaInicial;
+            this.linhaFinal = linhaFinal;
         }
 
         public void Run()
         {
-            Console.WriteLine("Entrou na thread");
+            Console.WriteLine("Entrou na thread de cálculo");
+
+            List<List<string>> documents;
+            lock (locker)
+            {
+                Console.WriteLine("Entrou na seção crítica de cálculo");
+                documents = documentosCompartilhados.GetRange(linhaInicial, linhaFinal - linhaInicial);
+                Console.WriteLine("Saiu da seção crítica de cálculo");
+            }
+
             var calculator = new Tfidf();
             tfidf = calculator.TfIdf(document, documents, "content");
-            Console.WriteLine("Saiu da thread");
+
+            Console.WriteLine("Saiu da thread de cálculo");
         }
 
         public double GetTfidf()
@@ -157,19 +171,16 @@ public class Tfidf
         thread3.Start();
 
         thread1.Join();
-        var documents1 = leitor1.GetDocuments();
         thread2.Join();
-        var documents2 = leitor2.GetDocuments();
         thread3.Join();
-        var documents3 = leitor3.GetDocuments();
 
         var tempoFinal = DateTime.Now;
 
         Console.WriteLine($"Tempo de leitura do dataset: {(tempoFinal - tempoInicial).TotalSeconds}s");
 
-        var calculador1 = new Calculador(string.Join(" ", documents1[1]), documents1);
-        var calculador2 = new Calculador(string.Join(" ", documents1[1]), documents2);
-        var calculador3 = new Calculador(string.Join(" ", documents1[1]), documents3);
+        var calculador1 = new Calculador(string.Join(" ", documentosCompartilhados[1]), 0, 1000000);
+        var calculador2 = new Calculador(string.Join(" ", documentosCompartilhados[1]), 1000000, 2000000);
+        var calculador3 = new Calculador(string.Join(" ", documentosCompartilhados[1]), 2000000, 3000000);
 
         tempoInicial = DateTime.Now;
 
