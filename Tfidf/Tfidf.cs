@@ -6,7 +6,7 @@ using System.Threading;
 
 public class Tfidf
 {
-    private static readonly object locker = new object();
+    private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
     private static readonly List<List<string>> documentosCompartilhados = new List<List<string>>();
 
     public double Tf(string comment, string term)
@@ -106,12 +106,19 @@ public class Tfidf
             var documents = LeituraParcial(linhaInicial, linhaFinal);
             Console.WriteLine("Entrou na thread de leitura");
 
-            lock (locker)
+            try
             {
+                semaphore.Wait();
+
                 Console.WriteLine("Entrou na seção crítica de leitura");
                 documentosCompartilhados.AddRange(documents);
                 Console.WriteLine("Saiu da seção crítica de leitura");
             }
+            finally
+            {
+                semaphore.Release();
+            }
+
             Console.WriteLine("Saiu da thread de leitura");
         }
     }
@@ -135,11 +142,18 @@ public class Tfidf
             Console.WriteLine("Entrou na thread de cálculo");
 
             List<List<string>> documents;
-            lock (locker)
+
+            try
             {
+                semaphore.Wait();
+
                 Console.WriteLine("Entrou na seção crítica de cálculo");
                 documents = documentosCompartilhados.GetRange(linhaInicial, linhaFinal - linhaInicial);
                 Console.WriteLine("Saiu da seção crítica de cálculo");
+            }
+            finally
+            {
+                semaphore.Release();
             }
 
             var calculator = new Tfidf();
