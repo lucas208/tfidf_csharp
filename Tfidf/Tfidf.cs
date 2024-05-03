@@ -97,15 +97,17 @@ public class Tfidf
 
     public static async Task Main(string[] args)
     {
-        var leitura1 = LeituraParcialAsync(1, 1000000);
-        var leitura2 = LeituraParcialAsync(1000001, 2000000);
-        var leitura3 = LeituraParcialAsync(2000001, 3000000);
+        var leitura1 = LeituraParcialAsync(1, 750000);
+        var leitura2 = LeituraParcialAsync(750001, 1500000);
+        var leitura3 = LeituraParcialAsync(1500001, 2250000);
+        var leitura4 = LeituraParcialAsync(2250001, 3000000);
 
         var tempoInicial = DateTime.Now;
 
         var documents1 = await leitura1;
         var documents2 = await leitura2;
         var documents3 = await leitura3;
+        var documents4 = await leitura4;
 
         var tempoFinal = DateTime.Now;
 
@@ -116,17 +118,19 @@ public class Tfidf
         var calculo1 = CalculaTfIdfAsync(documentTF, documents1);
         var calculo2 = CalculaTfIdfAsync(documentTF, documents2);
         var calculo3 = CalculaTfIdfAsync(documentTF, documents3);
+        var calculo4 = CalculaTfIdfAsync(documentTF, documents4);
 
         tempoInicial = DateTime.Now;
 
         var tfidf1 = await calculo1;
         var tfidf2 = await calculo2;
         var tfidf3 = await calculo3;
+        var tfidf4 = await calculo4;
 
         tempoFinal = DateTime.Now;
 
         Console.WriteLine($"Tempo de cálculo do TF-IDF (aproximado): {(tempoFinal - tempoInicial).TotalSeconds}s");
-        Console.WriteLine($"TF-IDF (aproximado) = {(tfidf1 + tfidf2 + tfidf3) / 3.0}");
+        Console.WriteLine($"TF-IDF (aproximado) = {(tfidf1 + tfidf2 + tfidf3 + tfidf4) / 4.0}");
         Console.WriteLine("Pressione qualquer tecla para sair...");
         Console.ReadKey();
     }
