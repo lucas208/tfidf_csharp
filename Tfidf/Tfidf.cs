@@ -196,7 +196,7 @@ public class Tfidf
         thread7.Join();
         var tfidf3 = calculador3.GetTfidf();
         thread8.Join();
-        var tfidf4 = calculador3.GetTfidf();
+        var tfidf4 = calculador4.GetTfidf();
 
         tempoFinal = DateTime.Now;
 
