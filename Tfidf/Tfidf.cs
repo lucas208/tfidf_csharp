@@ -145,53 +145,62 @@ public class Tfidf
 
     public static void Main(string[] args)
     {
-        var leitor1 = new Leitor(1, 1000000);
-        var leitor2 = new Leitor(1000001, 2000000);
-        var leitor3 = new Leitor(2000001, 3000000);
+        var leitor1 = new Leitor(1, 750000);
+        var leitor2 = new Leitor(750001, 1500000);
+        var leitor3 = new Leitor(1500001, 2250000);
+        var leitor4 = new Leitor(2250001, 3000000);
 
         var tempoInicial = DateTime.Now;
 
         var thread1 = new Thread(leitor1.Run);
         var thread2 = new Thread(leitor2.Run);
         var thread3 = new Thread(leitor3.Run);
+        var thread4 = new Thread(leitor4.Run);
 
         thread1.Start();
         thread2.Start();
         thread3.Start();
+        thread4.Start();
 
         thread1.Join();
         thread2.Join();
         thread3.Join();
+        thread4.Join();
 
         var tempoFinal = DateTime.Now;
 
         Console.WriteLine($"Tempo de leitura do dataset: {(tempoFinal - tempoInicial).TotalSeconds}s");
 
-        var calculador1 = new Calculador(string.Join(" ", documentosCompartilhados[1]), 0, 1000000);
-        var calculador2 = new Calculador(string.Join(" ", documentosCompartilhados[1]), 1000000, 2000000);
-        var calculador3 = new Calculador(string.Join(" ", documentosCompartilhados[1]), 2000000, 3000000);
+        var calculador1 = new Calculador(string.Join(" ", documentosCompartilhados[1]), 0, 750000);
+        var calculador2 = new Calculador(string.Join(" ", documentosCompartilhados[1]), 750000, 1500000);
+        var calculador3 = new Calculador(string.Join(" ", documentosCompartilhados[1]), 1500000, 2250000);
+        var calculador4 = new Calculador(string.Join(" ", documentosCompartilhados[1]), 2250000, 3000000);
 
         tempoInicial = DateTime.Now;
 
-        var thread4 = new Thread(calculador1.Run);
-        var thread5 = new Thread(calculador2.Run);
-        var thread6 = new Thread(calculador3.Run);
+        var thread5 = new Thread(calculador1.Run);
+        var thread6 = new Thread(calculador2.Run);
+        var thread7 = new Thread(calculador3.Run);
+        var thread8 = new Thread(calculador4.Run);
 
-        thread4.Start();
         thread5.Start();
         thread6.Start();
+        thread7.Start();
+        thread8.Start();
 
-        thread4.Join();
-        var tfidf1 = calculador1.GetTfidf();
         thread5.Join();
-        var tfidf2 = calculador2.GetTfidf();
+        var tfidf1 = calculador1.GetTfidf();
         thread6.Join();
+        var tfidf2 = calculador2.GetTfidf();
+        thread7.Join();
         var tfidf3 = calculador3.GetTfidf();
+        thread8.Join();
+        var tfidf4 = calculador4.GetTfidf();
 
         tempoFinal = DateTime.Now;
 
         Console.WriteLine($"Tempo de cálculo do TF-IDF (aproximado): {(tempoFinal - tempoInicial).TotalSeconds}s");
-        Console.WriteLine($"TF-IDF (aproximado) = {(tfidf1 + tfidf2 + tfidf3) / 3.0}");
+        Console.WriteLine($"TF-IDF (aproximado) = {(tfidf1 + tfidf2 + tfidf3 + tfidf4) / 4.0}");
         Console.WriteLine("Pressione qualquer tecla para sair...");
         Console.ReadKey();
     }
