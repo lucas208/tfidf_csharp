@@ -6,7 +6,7 @@ using System.Threading;
 
 public class Tfidf
 {
-    private static volatile List<List<string>> documentosCompartilhados = new List<List<string>>();
+    private static readonly List<List<string>> documentosCompartilhados = new List<List<string>>();
 
     public double Tf(string comment, string term)
     {
@@ -93,6 +93,7 @@ public class Tfidf
     {
         private readonly int linhaInicial;
         private readonly int linhaFinal;
+        private static ThreadLocal<List<List<String>>> documents = new ThreadLocal<List<List<string>>>();
 
         public Leitor(int linhaInicial, int linhaFinal)
         {
@@ -102,10 +103,10 @@ public class Tfidf
 
         public void Run()
         {
-            var documents = LeituraParcial(linhaInicial, linhaFinal);
             Console.WriteLine("Entrou na thread de leitura");
+            documents.Value = LeituraParcial(linhaInicial, linhaFinal);
             Console.WriteLine("Entrou na seção crítica de leitura");
-            documentosCompartilhados.AddRange(documents);
+            documentosCompartilhados.AddRange(documents.Value);
             Console.WriteLine("Saiu da seção crítica de leitura");
             Console.WriteLine("Saiu da thread de leitura");
         }
@@ -117,6 +118,7 @@ public class Tfidf
         private readonly string document;
         private readonly int linhaInicial;
         private readonly int linhaFinal;
+        private static ThreadLocal<List<List<String>>> documents = new ThreadLocal<List<List<string>>>();
 
         public Calculador(string document, int linhaInicial, int linhaFinal)
         {
@@ -128,12 +130,11 @@ public class Tfidf
         public void Run()
         {
             Console.WriteLine("Entrou na thread de cálculo");
-            List<List<string>> documents;
             Console.WriteLine("Entrou na seção crítica de cálculo");
-            documents = documentosCompartilhados.GetRange(linhaInicial, linhaFinal - linhaInicial);
+            documents.Value = documentosCompartilhados.GetRange(linhaInicial, linhaFinal - linhaInicial);
             Console.WriteLine("Saiu da seção crítica de cálculo");
             var calculator = new Tfidf();
-            tfidf = calculator.TfIdf(document, documents, "content");
+            tfidf = calculator.TfIdf(document, documents.Value, "content");
             Console.WriteLine("Saiu da thread de cálculo");
         }
 
